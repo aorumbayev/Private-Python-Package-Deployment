@@ -39,7 +39,7 @@ jobs:
       id-token: write
       contents: read
       packages: write
-    env: # This env block is for the entire job, inherited by steps
+    env:
       TWINE_USERNAME: __token__
       TWINE_PASSWORD: ${{ secrets.RELEASE_GITHUB_TOKEN }}
     steps:
@@ -52,39 +52,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://pypi.pkg.github.com/${{ github.repository_owner }}
-          # No need for username/password, GITHUB_TOKEN is used by default by the action
-          # when publishing to GitHub Packages if permissions are set correctly.
-          # The action handles OIDC for PyPI.org, but for GH Packages, it uses GITHUB_TOKEN.
-          # We are providing TWINE_USERNAME and GITHUB_TOKEN (as TWINE_PASSWORD)
-          # explicitly here for GitHub Packages as per common practice, though
-          # the action might infer it.
-          # For GitHub Packages, ensure GITHUB_TOKEN (or your custom RELEASE_GITHUB_TOKEN)
-          # has 'packages: write' permission.
-          # The environment variables TWINE_USERNAME and TWINE_PASSWORD are set below
-          # to ensure twine uses them for GitHub Packages.
-          # The pypa/gh-action-pypi-publish action documentation mentions that
-          # for non-PyPI/TestPyPI repositories, it falls back to standard Twine behavior.
-          # So, we need to provide credentials.
-          # username: __token__ # This is usually for PyPI.org
-          # password: ${{ secrets.GITHUB_TOKEN }} # Using the built-in GITHUB_TOKEN
-          # Let's stick to the more explicit TWINE_USERNAME and TWINE_PASSWORD for non-PyPI repos
-          # as per general twine usage for custom repositories.
-          # The action's documentation is a bit nuanced for GitHub Packages.
-          # It primarily focuses on PyPI/TestPyPI with OIDC.
-          # For other repos, it uses Twine's standard mechanisms.
-          # Thus, setting TWINE_USERNAME and TWINE_PASSWORD via env vars is the most robust.
-          # Ensure your RELEASE_GITHUB_TOKEN has `packages: write` scope.
-          # No, for pypa/gh-action-pypi-publish, when publishing to GH Packages (or other non-PyPI.org repos),
-          # it's best to rely on Twine's environment variable configuration if the action itself
-          # doesn't directly take username/password for arbitrary repos.
-          # The action primarily facilitates OIDC with PyPI.
-          # Let's set the environment variables for Twine directly.
-          # The action will pick them up.
-
-          # Correction: The pypa/gh-action-pypi-publish action, when used with a non-PyPI repository_url,
-          # expects TWINE_USERNAME and TWINE_PASSWORD to be in the environment.
-          # The `permissions: id-token: write` is for OIDC with PyPI.org.
-          # For GitHub Packages, we need `permissions: packages: write` for the GITHUB_TOKEN.
+          attestations: false # Explicitly disable attestations for non-PyPI repositories
 
 # Old publish step:
 #      - name: Publish package
