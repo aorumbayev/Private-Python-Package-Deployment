@@ -36,9 +36,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
-      contents: read
-      packages: write
+      # id-token: write # Not needed for direct twine upload with token
+      contents: read   # For checkout, if any step in this job needed it (though build job handles checkout)
+      packages: write  # Essential for GITHUB_TOKEN/RELEASE_GITHUB_TOKEN to publish
     env:
       TWINE_USERNAME: __token__
       TWINE_PASSWORD: ${{ secrets.RELEASE_GITHUB_TOKEN }}
@@ -49,17 +49,6 @@ jobs:
           name: python-package-distributions
           path: dist/
       - name: Publish distribution to GitHub Packages
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://pypi.pkg.github.com/${{ github.repository_owner }}
-          attestations: false # Explicitly disable attestations for non-PyPI repositories
-
-# Old publish step:
-#      - name: Publish package
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.RELEASE_GITHUB_TOKEN }} # This was used to set TWINE_PASSWORD
-#          TWINE_USERNAME: __token__
-#          TWINE_PASSWORD: ${{ secrets.RELEASE_GITHUB_TOKEN }}
-#        run: |
-#          pip install twine
-#          python -m twine upload --repository-url https://api.github.com/orgs/${{ github.repository_owner }}/packages/pypi/upload dist/* --non-interactive
+        run: |
+          pip install twine
+          python -m twine upload --repository-url https://pypi.pkg.github.com/${{ github.repository_owner }} dist/* --non-interactive
