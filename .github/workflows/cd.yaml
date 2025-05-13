@@ -36,9 +36,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # Needed for trusted publishing
-      contents: read # Needed to checkout the repository
-      packages: write # Needed to publish packages
+      id-token: write
+      contents: read
+      packages: write
+    env: # This env block is for the entire job, inherited by steps
+      TWINE_USERNAME: __token__
+      TWINE_PASSWORD: ${{ secrets.RELEASE_GITHUB_TOKEN }}
     steps:
       - name: Download all the dists
         uses: actions/download-artifact@v4
@@ -82,11 +85,6 @@ jobs:
           # expects TWINE_USERNAME and TWINE_PASSWORD to be in the environment.
           # The `permissions: id-token: write` is for OIDC with PyPI.org.
           # For GitHub Packages, we need `permissions: packages: write` for the GITHUB_TOKEN.
-env: # Setting these at the job level for the pypa action to pick up
-  TWINE_USERNAME: __token__
-  TWINE_PASSWORD: ${{ secrets.RELEASE_GITHUB_TOKEN }} # Use your custom token if it has package:write
-  # TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }} # Or use the default GITHUB_TOKEN if it has package:write and contents:read
-    # The original had secrets.RELEASE_GITHUB_TOKEN. Sticking to that.
 
 # Old publish step:
 #      - name: Publish package
